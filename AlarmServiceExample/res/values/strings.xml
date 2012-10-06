@@ -1,0 +1,8 @@
+<resources>
+
+    <string name="app_name">Alarm Service Example</string>
+    <string name="title_activity_main">Alarm Service Example</string>
+    <string name="button">Schedule Alarm</string>
+    <string name="ok">OK</string>
+
+</resources>

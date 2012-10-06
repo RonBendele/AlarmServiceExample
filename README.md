@@ -1,0 +1,1 @@
+I use AlarmServiceExample as a test bed for Android Alarm Service.
