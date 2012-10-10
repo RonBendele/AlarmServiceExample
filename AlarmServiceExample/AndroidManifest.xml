@@ -16,12 +16,16 @@
         android:theme="@style/AppTheme" >
         <service android:name=".AlarmService" >
         </service>
+        <service android:name=".TestAlarmService" >
+        </service>
         <service android:name=".RunAlarmService" >
         </service>
         <service android:name=".SpeechService" >
         </service>
 
         <receiver android:name=".OnRunAlarmReceiver" >
+        </receiver>
+        <receiver android:name=".OnTestAlarmReceiver" >
         </receiver>
 
         <activity

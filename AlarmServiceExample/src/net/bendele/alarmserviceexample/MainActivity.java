@@ -36,6 +36,7 @@ public class MainActivity extends Activity {
     private RadioGroup broadcastScope;
     private Spinner minutes;
     private int interval;
+    private static boolean isERAvailable = false;
 
     // Logging constants
     private static final boolean DEBUG = true;
@@ -55,11 +56,15 @@ public class MainActivity extends Activity {
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
-        myLog("");
+        myLog("in");
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
         context = getApplicationContext();
+
+        if (!isERAvailable) {
+            setElapsedRealtimeAlarmAvailability();
+        }
 
         runAlarmMgr = (AlarmManager) context
                 .getSystemService(Context.ALARM_SERVICE);
@@ -159,17 +164,8 @@ public class MainActivity extends Activity {
             }
         });
         minutes.setSelection(9); // start with 10 seconds
-
-        startER.setEnabled(true);
-        startERW.setEnabled(true);
-        startRTC.setEnabled(true);
-        startRTCW.setEnabled(true);
-        stopAlarm.setEnabled(false);
-
-        pendingIntentType.setVisibility(View.VISIBLE);
-        broadcastScope.setVisibility(View.VISIBLE);
-        minutes.setEnabled(true);
-    }
+        myLog("out");
+    } // onCreate
 
     @Override
     protected void onDestroy() {
@@ -181,28 +177,69 @@ public class MainActivity extends Activity {
     protected void onPause() {
         super.onPause();
         myLog("");
+        runAlarmMgr.cancel(runPendingIntent);
         if (MainApp.isScopeGlobal()) {
             unregisterReceiver(runBroadcastReceiver);
+            unregisterReceiver(testBroadcastReceiver);
         } else {
             LocalBroadcastManager.getInstance(context).unregisterReceiver(
                     runBroadcastReceiver);
-
+            LocalBroadcastManager.getInstance(context).unregisterReceiver(
+                    testBroadcastReceiver);
         }
     }
 
     @Override
     protected void onResume() {
         super.onResume();
-        myLog("");
+        myLog("in");
+
+        startER.setEnabled(isERAvailable);
+        startERW.setEnabled(isERAvailable);
+        startRTC.setEnabled(true);
+        startRTCW.setEnabled(true);
+        stopAlarm.setEnabled(false);
+
+        pendingIntentType.setVisibility(View.VISIBLE);
+        broadcastScope.setVisibility(View.VISIBLE);
+        minutes.setEnabled(true);
+
         if (MainApp.isScopeGlobal()) {
             registerReceiver(runBroadcastReceiver, new IntentFilter(
                     RunAlarmService.BROADCAST_ACTION));
+            registerReceiver(testBroadcastReceiver, new IntentFilter(
+                    TestAlarmService.BROADCAST_ACTION));
         } else {
             LocalBroadcastManager.getInstance(context).registerReceiver(
                     runBroadcastReceiver,
                     new IntentFilter(RunAlarmService.BROADCAST_ACTION));
+            LocalBroadcastManager.getInstance(context).registerReceiver(
+                    testBroadcastReceiver,
+                    new IntentFilter(TestAlarmService.BROADCAST_ACTION));
         }
+        myLog("out");
     }
+
+    private void setElapsedRealtimeAlarmAvailability() {
+        myLog("");
+        AlarmManager testAlarmMgr = (AlarmManager) context
+                .getSystemService(Context.ALARM_SERVICE);
+        Intent testIntent = new Intent(context, OnTestAlarmReceiver.class);
+        PendingIntent testPendingIntent = PendingIntent.getBroadcast(context,
+                0, testIntent, 0);
+        long now = SystemClock.elapsedRealtime();
+        testAlarmMgr.set(AlarmManager.ELAPSED_REALTIME, now, testPendingIntent);
+    }
+
+    private BroadcastReceiver testBroadcastReceiver = new BroadcastReceiver() {
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            myLog("isERAvailable is true");
+            isERAvailable = true;
+            startER.setEnabled(isERAvailable);
+            startERW.setEnabled(isERAvailable);
+        }
+    };
 
     private void showDialog() {
         AlertDialog.Builder ttsAlertBuilder = new AlertDialog.Builder(this);
@@ -222,8 +259,8 @@ public class MainActivity extends Activity {
     public void onStopAlarmButtonClick(View view) {
         myLog("");
         runAlarmMgr.cancel(runPendingIntent);
-        startER.setEnabled(true);
-        startERW.setEnabled(true);
+        startER.setEnabled(isERAvailable);
+        startERW.setEnabled(isERAvailable);
         startRTC.setEnabled(true);
         startRTCW.setEnabled(true);
         stopAlarm.setEnabled(false);
