@@ -13,6 +13,12 @@ import android.os.SystemClock;
 import android.support.v4.content.LocalBroadcastManager;
 import android.util.Log;
 import android.view.View;
+import android.widget.AdapterView;
+import android.widget.AdapterView.OnItemSelectedListener;
+import android.widget.ArrayAdapter;
+import android.widget.Button;
+import android.widget.RadioGroup;
+import android.widget.Spinner;
 
 public class MainActivity extends Activity {
 
@@ -20,6 +26,16 @@ public class MainActivity extends Activity {
     private Intent intent;
     private PendingIntent runPendingIntent;
     private Context context;
+
+    private Button startER;
+    private Button startERW;
+    private Button startRTC;
+    private Button startRTCW;
+    private Button stopAlarm;
+    private RadioGroup pendingIntentType;
+    private RadioGroup broadcastScope;
+    private Spinner minutes;
+    private int interval;
 
     // Logging constants
     private static final boolean DEBUG = true;
@@ -48,29 +64,144 @@ public class MainActivity extends Activity {
         runAlarmMgr = (AlarmManager) context
                 .getSystemService(Context.ALARM_SERVICE);
         intent = new Intent(context, OnRunAlarmReceiver.class);
-        // runPendingIntent = PendingIntent.getActivity(context, 0, intent, 0);
-        // runPendingIntent = PendingIntent.getService(context, 0, intent, 0);
+        myLog("Local Broadcast");
+        MainApp.setScopeGlobal(false);
+        myLog("Pending intent will perform a Broadcast");
         runPendingIntent = PendingIntent.getBroadcast(context, 0, intent, 0);
+
+        startER = (Button) findViewById(R.id.startERButton);
+        startERW = (Button) findViewById(R.id.startERWButton);
+        startRTC = (Button) findViewById(R.id.startRTCButton);
+        startRTCW = (Button) findViewById(R.id.startRTCWButton);
+        stopAlarm = (Button) findViewById(R.id.stopAlarmButton);
+
+        pendingIntentType = (RadioGroup) findViewById(R.id.rgPendingIntentType);
+        pendingIntentType
+                .setOnCheckedChangeListener(new RadioGroup.OnCheckedChangeListener() {
+
+                    @Override
+                    public void onCheckedChanged(RadioGroup group, int checkedId) {
+                        myLog("");
+                        switch (checkedId) {
+                        case R.id.radioactivity:
+                            myLog("Pending intent will start a new Activity");
+                            runPendingIntent = PendingIntent.getActivity(
+                                    context, 0, intent, 0);
+                            break;
+                        case R.id.radioservice:
+                            myLog("Pending intent will start a Service");
+                            runPendingIntent = PendingIntent.getService(
+                                    context, 0, intent, 0);
+                            break;
+                        case R.id.radiobroadcast:
+                            myLog("Pending intent will perform a Broadcast");
+                            runPendingIntent = PendingIntent.getBroadcast(
+                                    context, 0, intent, 0);
+                            break;
+                        default:
+                            myLog("Default");
+                        }
+                    }
+                });
+
+        broadcastScope = (RadioGroup) findViewById(R.id.rgbroadcast);
+        broadcastScope
+                .setOnCheckedChangeListener(new RadioGroup.OnCheckedChangeListener() {
+
+                    @Override
+                    public void onCheckedChanged(RadioGroup group, int checkedId) {
+                        switch (checkedId) {
+                        case R.id.rblocal:
+                            myLog("Local Broadcast");
+                            unregisterReceiver(runBroadcastReceiver);
+                            LocalBroadcastManager
+                                    .getInstance(context)
+                                    .registerReceiver(
+                                            runBroadcastReceiver,
+                                            new IntentFilter(
+                                                    RunAlarmService.BROADCAST_ACTION));
+                            MainApp.setScopeGlobal(false);
+                            break;
+                        case R.id.rbglobal:
+                            myLog("Global Broadcast");
+                            LocalBroadcastManager.getInstance(context)
+                                    .unregisterReceiver(runBroadcastReceiver);
+                            registerReceiver(runBroadcastReceiver,
+                                    new IntentFilter(
+                                            RunAlarmService.BROADCAST_ACTION));
+                            MainApp.setScopeGlobal(true);
+                            break;
+                        default:
+                            myLog("Default");
+                        }
+                    }
+                });
+
+        minutes = (Spinner) findViewById(R.id.minutesSpinner);
+        ArrayAdapter<CharSequence> adapter = ArrayAdapter.createFromResource(
+                this, R.array.minutes, android.R.layout.simple_spinner_item);
+        minutes.setAdapter(adapter);
+        minutes.setOnItemSelectedListener(new OnItemSelectedListener() {
+
+            @Override
+            public void onItemSelected(AdapterView<?> adView, View target,
+                    int position, long id) {
+                Spinner spinner = (Spinner) adView;
+                interval = Integer.parseInt(spinner.getItemAtPosition(position)
+                        .toString());
+                myLog("User chose an interval of " + interval);
+                interval = interval * 1000;
+            }
+
+            @Override
+            public void onNothingSelected(AdapterView<?> adView) {
+                // leave everything as is
+            }
+        });
+        minutes.setSelection(9); // start with 10 seconds
+
+        startER.setEnabled(true);
+        startERW.setEnabled(true);
+        startRTC.setEnabled(true);
+        startRTCW.setEnabled(true);
+        stopAlarm.setEnabled(false);
+
+        pendingIntentType.setVisibility(View.VISIBLE);
+        broadcastScope.setVisibility(View.VISIBLE);
+        minutes.setEnabled(true);
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        myLog("");
     }
 
     @Override
     protected void onPause() {
         super.onPause();
         myLog("");
-        LocalBroadcastManager.getInstance(getApplicationContext())
-                .unregisterReceiver(runBroadcastReceiver);
-        // unregisterReceiver(runBroadcastReceiver);
+        if (MainApp.isScopeGlobal()) {
+            unregisterReceiver(runBroadcastReceiver);
+        } else {
+            LocalBroadcastManager.getInstance(context).unregisterReceiver(
+                    runBroadcastReceiver);
+
+        }
     }
 
     @Override
     protected void onResume() {
         super.onResume();
         myLog("");
-        LocalBroadcastManager.getInstance(getApplicationContext())
-                .registerReceiver(runBroadcastReceiver,
-                        new IntentFilter(RunAlarmService.BROADCAST_ACTION));
-        // registerReceiver(runBroadcastReceiver, new IntentFilter(
-        // RunAlarmService.BROADCAST_ACTION));
+        if (MainApp.isScopeGlobal()) {
+            registerReceiver(runBroadcastReceiver, new IntentFilter(
+                    RunAlarmService.BROADCAST_ACTION));
+        } else {
+            LocalBroadcastManager.getInstance(context).registerReceiver(
+                    runBroadcastReceiver,
+                    new IntentFilter(RunAlarmService.BROADCAST_ACTION));
+        }
     }
 
     private void showDialog() {
@@ -88,19 +219,81 @@ public class MainActivity extends Activity {
         }
     };
 
-    public void onButtonClick(View view) {
+    public void onStopAlarmButtonClick(View view) {
         myLog("");
-        long now = SystemClock.elapsedRealtime();
-        /*
-         * runAlarmMgr.set(AlarmManager.ELAPSED_REALTIME, now + 0,
-         * runPendingIntent);
-         * runAlarmMgr.set(AlarmManager.ELAPSED_REALTIME_WAKEUP, now + 0,
-         * runPendingIntent); runAlarmMgr.set(AlarmManager.RTC, now + 0,
-         * runPendingIntent);
-         */
-        runAlarmMgr.set(AlarmManager.RTC_WAKEUP, now + 0, runPendingIntent);
-
-        // runAlarmMgr.setRepeating(AlarmManager.ELAPSED_REALTIME_WAKEUP, now
-        // + runTriggerTime, runIntervalTime, runPendingIntent);
+        runAlarmMgr.cancel(runPendingIntent);
+        startER.setEnabled(true);
+        startERW.setEnabled(true);
+        startRTC.setEnabled(true);
+        startRTCW.setEnabled(true);
+        stopAlarm.setEnabled(false);
+        pendingIntentType.setVisibility(View.VISIBLE);
+        broadcastScope.setVisibility(View.VISIBLE);
+        minutes.setEnabled(true);
     }
+
+    public void onStartERButtonClick(View view) {
+        myLog("");
+        // because Elapsed Real-time, use SystemClock
+        long now = SystemClock.elapsedRealtime();
+        runAlarmMgr.setRepeating(AlarmManager.ELAPSED_REALTIME, now + 0,
+                interval, runPendingIntent);
+        startER.setEnabled(false);
+        startERW.setEnabled(false);
+        startRTC.setEnabled(false);
+        startRTCW.setEnabled(false);
+        stopAlarm.setEnabled(true);
+        pendingIntentType.setVisibility(View.INVISIBLE);
+        broadcastScope.setVisibility(View.INVISIBLE);
+        minutes.setEnabled(false);
+    }
+
+    public void onStartERWButtonClick(View view) {
+        myLog("");
+        // because Elapsed Real-time, use SystemClock
+        long now = SystemClock.elapsedRealtime();
+        runAlarmMgr.setRepeating(AlarmManager.ELAPSED_REALTIME_WAKEUP, now + 0,
+                interval, runPendingIntent);
+        startER.setEnabled(false);
+        startERW.setEnabled(false);
+        startRTC.setEnabled(false);
+        startRTCW.setEnabled(false);
+        stopAlarm.setEnabled(true);
+        pendingIntentType.setVisibility(View.INVISIBLE);
+        broadcastScope.setVisibility(View.INVISIBLE);
+        minutes.setEnabled(false);
+    }
+
+    public void onStartRTCButtonClick(View view) {
+        myLog("");
+        // because Real-Time Clock, use System
+        long now = System.currentTimeMillis();
+        runAlarmMgr.setRepeating(AlarmManager.RTC, now + 0, interval,
+                runPendingIntent);
+        startER.setEnabled(false);
+        startERW.setEnabled(false);
+        startRTC.setEnabled(false);
+        startRTCW.setEnabled(false);
+        stopAlarm.setEnabled(true);
+        pendingIntentType.setVisibility(View.INVISIBLE);
+        broadcastScope.setVisibility(View.INVISIBLE);
+        minutes.setEnabled(false);
+    }
+
+    public void onStartRTCWButtonClick(View view) {
+        myLog("");
+        // because Real-Time Clock, use System
+        long now = System.currentTimeMillis();
+        runAlarmMgr.setRepeating(AlarmManager.RTC_WAKEUP, now + 0, interval,
+                runPendingIntent);
+        startER.setEnabled(false);
+        startERW.setEnabled(false);
+        startRTC.setEnabled(false);
+        startRTCW.setEnabled(false);
+        stopAlarm.setEnabled(true);
+        pendingIntentType.setVisibility(View.INVISIBLE);
+        broadcastScope.setVisibility(View.INVISIBLE);
+        minutes.setEnabled(false);
+    }
+
 }

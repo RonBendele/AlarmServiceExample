@@ -2,7 +2,16 @@
 
     <string name="app_name">Alarm Service Example</string>
     <string name="title_activity_main">Alarm Service Example</string>
-    <string name="button">Schedule Alarm</string>
+    <string name="start_rtc">Start RTC Alarm</string>
     <string name="ok">OK</string>
+    <string name="start_rtcw">Start RTCW Alarm</string>
+    <string name="start_er">Start ER Alarm</string>
+    <string name="start_erw">Start ERW Alarm</string>
+    <string name="stop_alarm">Stop Any Alarm</string>
+    <string name="radioButtonActivity">Activity</string>
+    <string name="radioButtonService">Service</string>
+    <string name="radioButtonBroadcast">Broadcast</string>
+    <string name="rbLocal">Local</string>
+    <string name="rbGlobal">Global</string>
 
 </resources>

@@ -4,12 +4,110 @@
     android:layout_height="match_parent" >
 
     <Button
-        android:id="@+id/button1"
+        android:id="@+id/startERButton"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
+        android:layout_alignParentLeft="true"
         android:layout_alignParentTop="true"
-        android:layout_marginTop="40dp"
-        android:text="@string/button"
-        android:onClick="onButtonClick" />
+        android:onClick="onStartERButtonClick"
+        android:text="@string/start_er" />
+
+    <Button
+        android:id="@+id/startERWButton"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentLeft="true"
+        android:layout_marginTop="75dp"
+        android:onClick="onStartERWButtonClick"
+        android:text="@string/start_erw" />
+
+    <Button
+        android:id="@+id/startRTCButton"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentLeft="true"
+        android:layout_below="@+id/startERWButton"
+        android:layout_marginTop="26dp"
+        android:onClick="onStartRTCButtonClick"
+        android:text="@string/start_rtc" />
+
+    <Button
+        android:id="@+id/startRTCWButton"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentLeft="true"
+        android:layout_below="@+id/startRTCButton"
+        android:layout_marginTop="30dp"
+        android:onClick="onStartRTCWButtonClick"
+        android:text="@string/start_rtcw" />
+
+    <Button
+        android:id="@+id/stopAlarmButton"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentRight="true"
+        android:layout_alignParentTop="true"
+        android:onClick="onStopAlarmButtonClick"
+        android:text="@string/stop_alarm" />
+
+    <RadioGroup
+        android:id="@+id/rgPendingIntentType"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignLeft="@+id/stopAlarmButton"
+        android:layout_alignParentRight="true"
+        android:layout_alignTop="@+id/startERWButton" >
+
+        <RadioButton
+            android:id="@+id/radioactivity"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/radioButtonActivity" />
+
+        <RadioButton
+            android:id="@+id/radioservice"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/radioButtonService" />
+
+        <RadioButton
+            android:id="@+id/radiobroadcast"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:checked="true"
+            android:text="@string/radioButtonBroadcast" />
+    </RadioGroup>
+
+    <RadioGroup
+        android:id="@+id/rgbroadcast"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentLeft="true"
+        android:layout_alignParentRight="true"
+        android:layout_below="@+id/startRTCWButton"
+        android:layout_marginTop="30dp"
+        android:orientation="horizontal" >
+
+        <RadioButton
+            android:id="@+id/rblocal"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:checked="true"
+            android:text="@string/rbLocal" />
+
+        <RadioButton
+            android:id="@+id/rbglobal"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/rbGlobal" />
+    </RadioGroup>
+
+    <Spinner
+        android:id="@+id/minutesSpinner"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignBaseline="@+id/startRTCWButton"
+        android:layout_alignBottom="@+id/startRTCWButton"
+        android:layout_alignParentRight="true" />
 
 </RelativeLayout>

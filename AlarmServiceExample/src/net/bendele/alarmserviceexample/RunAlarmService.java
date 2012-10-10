@@ -20,9 +20,9 @@ import android.util.Log;
 
 public class RunAlarmService extends WakefulIntentService {
 
-	public static final String BROADCAST_ACTION = "net.bendele.runwalk.displayevent.running";
+    public static final String BROADCAST_ACTION = "net.bendele.runwalk.displayevent.running";
 
-	// Logging constants
+    // Logging constants
     private static final boolean DEBUG = true;
     private static final String BENDELE = "BENDELE";
     private static final String CLASS = "RunAlarmService - ";
@@ -39,15 +39,19 @@ public class RunAlarmService extends WakefulIntentService {
     }
 
     public RunAlarmService() {
-		super("RunAlarmService");
-		myLog("");
-	}
+        super("RunAlarmService");
+        myLog("");
+    }
 
-	@Override
-	protected void doWakefulWork(Intent intent) {
-	    myLog("");
-		Intent newIntent = new Intent(BROADCAST_ACTION);
-		LocalBroadcastManager.getInstance(getApplicationContext()).sendBroadcast(newIntent);
-		//sendBroadcast(newIntent);
-	}
+    @Override
+    protected void doWakefulWork(Intent intent) {
+        myLog("");
+        Intent newIntent = new Intent(BROADCAST_ACTION);
+        if (MainApp.isScopeGlobal()) {
+            sendBroadcast(newIntent);
+        } else {
+            LocalBroadcastManager.getInstance(getApplicationContext())
+                    .sendBroadcast(newIntent);
+        }
+    }
 }
